@@ -1,0 +1,17 @@
+# Build outputs
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+*.suo
+
+# Local application settings
+**/settings.ini
+
+# Local ML models (large binaries)
+**/*.onnx
+
+# OS files
+.DS_Store
+Thumbs.db

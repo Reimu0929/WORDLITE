@@ -1,0 +1,1094 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WordPadLite.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="WordPad Lite">
+
+    <Grid
+        x:Name="RootGrid"
+        Background="{ThemeResource ChromeBrush}"
+        AllowDrop="True"
+        DragOver="RootGrid_DragOver"
+        Drop="RootGrid_Drop">
+
+        <Grid.Resources>
+            <Style TargetType="FontIcon">
+                <Setter Property="FontFamily" Value="Segoe Fluent Icons" />
+            </Style>
+            <Style TargetType="PathIcon">
+                <Setter Property="Foreground" Value="{ThemeResource InkBrush}" />
+            </Style>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="27" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================ TITLE BAR ============================ -->
+        <Grid x:Name="TitleBarHost" Grid.Row="0" Background="{StaticResource WordAccentBrush}">
+            <Grid x:Name="TitleBarDragSurface" Background="Transparent" />
+            <Grid Margin="12,0,148,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Border Width="28" Height="28" CornerRadius="6" Background="White" Margin="0,0,6,0">
+                        <TextBlock Text="W" Foreground="{StaticResource WordAccentBrush}" FontFamily="Segoe UI Semibold" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel x:Name="TitleBarAutoSavePanel" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="0,0,3,0">
+                        <TextBlock Text="自動保存" FontFamily="Yu Gothic UI" FontSize="11" Foreground="#F0FFFFFF" VerticalAlignment="Center" />
+                        <ToggleSwitch
+                            x:Name="AutoSaveSwitch"
+                            Style="{StaticResource TitleBarToggleSwitchStyle}"
+                            Toggled="AutoSaveSwitch_Toggled"
+                            ToolTipService.ToolTip="変更を自動的に保存します" />
+                    </StackPanel>
+                    <StackPanel x:Name="QuickAccessPanel" Orientation="Horizontal" Spacing="1" VerticalAlignment="Center" />
+                    <Button x:Name="QuickAccessButton" Style="{StaticResource TitleBarButtonStyle}" Click="RibbonCommand_Click" Tag="qat-more" ToolTipService.ToolTip="クイック アクセス ツール バーのカスタマイズ" Content="&#xE712;" FontSize="11" />
+                </StackPanel>
+
+                <StackPanel x:Name="TitleBarTitleHost" Grid.Column="1" Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="WindowTitleText" Text="文書 1 - WordPad Lite" FontFamily="Yu Gothic UI" FontSize="13.5" Foreground="White" TextTrimming="CharacterEllipsis" MaxWidth="540" />
+                    <Ellipse x:Name="ModifiedDot" Width="6" Height="6" Fill="White" Visibility="Collapsed" VerticalAlignment="Center" />
+                    <TextBlock x:Name="SaveStateText" Text="保存済み" FontFamily="Yu Gothic UI" FontSize="11" Foreground="#D0FFFFFF" VerticalAlignment="Center" Visibility="Collapsed" />
+                </StackPanel>
+
+                <Button
+                    x:Name="TitleBarAccountButton"
+                    Grid.Column="2"
+                    Style="{StaticResource TitleBarAvatarButtonStyle}"
+                    Click="TitleBarAccount_Click"
+                    ToolTipService.ToolTip="アカウント"
+                    AutomationProperties.Name="アカウント">
+                    <Grid Width="26" Height="26">
+                        <Ellipse x:Name="TitleBarAvatarEllipse" Fill="#40FFFFFF" />
+                        <FontIcon x:Name="TitleBarAvatarIcon" Glyph="&#xE77B;" FontSize="14" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                </Button>
+            </Grid>
+        </Grid>
+
+        <!-- ============================ RIBBON TABS ============================ -->
+        <Grid Grid.Row="1" Background="{ThemeResource RibbonBrush}" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="9,0,0,0">
+                <ToggleButton x:Name="FileTab" Content="ファイル" Style="{StaticResource FileTabStyle}" Click="RibbonTab_Click" Tag="file" />
+                <Border Width="1" Height="18" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+                <ToggleButton x:Name="HomeTab" Content="ホーム" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="home" IsChecked="True" />
+                <ToggleButton x:Name="InsertTab" Content="挿入" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="insert" />
+                <ToggleButton x:Name="DesignTab" Content="デザイン" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="design" />
+                <ToggleButton x:Name="LayoutTab" Content="レイアウト" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="layout" />
+                <ToggleButton x:Name="ReferencesTab" Content="参考資料" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="references" />
+                <ToggleButton x:Name="MailingsTab" Content="差し込み文書" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="mailings" />
+                <ToggleButton x:Name="ReviewTab" Content="校閲" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="review" />
+                <ToggleButton x:Name="ViewTab" Content="表示" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="view" />
+                <ToggleButton x:Name="HelpTab" Content="ヘルプ" Style="{StaticResource RibbonTabStyle}" Click="RibbonTab_Click" Tag="help" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" Spacing="3">
+                <Button
+                    x:Name="DocumentModeButton"
+                    Style="{StaticResource RibbonModeButtonStyle}"
+                    ToolTipService.ToolTip="文書モードを切り替えます"
+                    AutomationProperties.Name="文書モード">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <ToggleMenuFlyoutItem x:Name="ModeEditItem" Text="編集" Tag="edit" Click="DocumentModeMenu_Click" />
+                            <ToggleMenuFlyoutItem x:Name="ModeReviewItem" Text="校閲" Tag="review" Click="DocumentModeMenu_Click" />
+                            <ToggleMenuFlyoutItem x:Name="ModeReadOnlyItem" Text="読み取り専用" Tag="readonly" Click="DocumentModeMenu_Click" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock x:Name="DocumentModeText" Text="編集" FontFamily="Yu Gothic UI" FontSize="11" VerticalAlignment="Center" />
+                        <FontIcon Glyph="&#xE70D;" FontSize="8" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Border Width="1" Height="18" Background="{ThemeResource HairlineBrush}" VerticalAlignment="Center" Margin="2,0,2,0" />
+                <Button
+                    x:Name="RibbonToggleButton"
+                    VerticalAlignment="Center"
+                    Width="26"
+                    Height="24"
+                    FontSize="11"
+                    Style="{StaticResource RibbonIconButtonStyle}"
+                    Click="RibbonToggle_Click"
+                    ToolTipService.ToolTip="リボンを折りたたむ"
+                    AutomationProperties.Name="リボンの表示"
+                    Content="&#xE70E;" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ============================ RIBBON ============================ -->
+        <Grid x:Name="RibbonHost" Grid.Row="2" Background="{ThemeResource RibbonBrush}">
+            <ScrollViewer
+                x:Name="RibbonScrollViewer"
+                Padding="0,0,0,2"
+                HorizontalScrollMode="Enabled"
+                HorizontalScrollBarVisibility="Hidden"
+                VerticalScrollMode="Disabled"
+                VerticalScrollBarVisibility="Disabled"
+                IsTabStop="False">
+                <Grid x:Name="RibbonPanelHost">
+                    <!-- HOME -->
+                    <StackPanel x:Name="HomeRibbon" Orientation="Horizontal" Height="92">
+
+                        <Border Style="{StaticResource RibbonGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="15" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Style="{StaticResource RibbonLargeButtonStyle}" Click="RibbonCommand_Click" Tag="paste" ToolTipService.ToolTip="貼り付け (Ctrl+V)">
+                                        <StackPanel Spacing="1">
+                                            <FontIcon Glyph="&#xE77F;" FontSize="22" />
+                                            <TextBlock Text="貼り付け" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="2,0,0,0" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource RibbonSmallTextButtonStyle}" Click="RibbonCommand_Click" Tag="cut" ToolTipService.ToolTip="切り取り (Ctrl+X)">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE8C6;" FontSize="13" />
+                                                <TextBlock Text="切り取り" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource RibbonSmallTextButtonStyle}" Click="RibbonCommand_Click" Tag="copy" ToolTipService.ToolTip="コピー (Ctrl+C)">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                                <TextBlock Text="コピー" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource RibbonSmallTextButtonStyle}" Click="RibbonCommand_Click" Tag="format-painter" ToolTipService.ToolTip="書式のコピー">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE790;" FontSize="13" />
+                                                <TextBlock Text="書式のコピー" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Grid.Row="1" Text="クリップボード" Style="{StaticResource RibbonGroupLabelStyle}" />
+                                <Button Grid.Row="1" Style="{StaticResource RibbonGroupLauncherStyle}" Click="RibbonCommand_Click" Tag="clipboard-dialog" ToolTipService.ToolTip="クリップボードの詳細設定" AutomationProperties.Name="クリップボードの詳細設定" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource RibbonGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="15" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="152" />
+                                        <ColumnDefinition Width="66" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="FontCombo" Width="148" Height="26" IsEditable="True" FontFamily="Yu Gothic UI" FontSize="12" VerticalAlignment="Top" SelectionChanged="FontCombo_SelectionChanged" TextSubmitted="FontCombo_TextSubmitted">
+                                        <ComboBoxItem Content="游明朝 (本文のフォント)" Tag="游明朝" />
+                                        <ComboBoxItem Content="游ゴシック" Tag="游ゴシック" />
+                                        <ComboBoxItem Content="MS ゴシック" Tag="MS ゴシック" />
+                                        <ComboBoxItem Content="MS 明朝" Tag="MS 明朝" />
+                                        <ComboBoxItem Content="メイリオ" Tag="メイリオ" />
+                                        <ComboBoxItem Content="BIZ UDPゴシック" Tag="BIZ UDPゴシック" />
+                                        <ComboBoxItem Content="Arial" Tag="Arial" />
+                                        <ComboBoxItem Content="Calibri" Tag="Calibri" />
+                                        <ComboBoxItem Content="Times New Roman" Tag="Times New Roman" />
+                                        <ComboBoxItem Content="Courier New" Tag="Courier New" />
+                                    </ComboBox>
+                                    <ComboBox x:Name="FontSizeCombo" Grid.Column="1" Width="64" Height="26" IsEditable="True" Margin="4,0,0,0" FontFamily="Yu Gothic UI" FontSize="12" VerticalAlignment="Top" SelectionChanged="FontSizeCombo_SelectionChanged" TextSubmitted="FontSizeCombo_TextSubmitted">
+                                        <x:String>8</x:String>
+                                        <x:String>9</x:String>
+                                        <x:String>10</x:String>
+                                        <x:String>10.5</x:String>
+                                        <x:String>11</x:String>
+                                        <x:String>12</x:String>
+                                        <x:String>14</x:String>
+                                        <x:String>16</x:String>
+                                        <x:String>18</x:String>
+                                        <x:String>20</x:String>
+                                        <x:String>24</x:String>
+                                        <x:String>28</x:String>
+                                        <x:String>36</x:String>
+                                        <x:String>48</x:String>
+                                        <x:String>72</x:String>
+                                    </ComboBox>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="0" Margin="4,1,0,0">
+                                        <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="grow-font" ToolTipService.ToolTip="フォントサイズの拡大" Content="&#xE8E8;" />
+                                        <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="shrink-font" ToolTipService.ToolTip="フォントサイズの縮小" Content="&#xE8E7;" />
+                                        <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="文字種の変換">
+                                            <Button.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem Text="すべて大文字" Tag="case-upper" Click="RibbonCommand_Click" />
+                                                    <MenuFlyoutItem Text="すべて小文字" Tag="case-lower" Click="RibbonCommand_Click" />
+                                                    <MenuFlyoutItem Text="各単語の先頭を大文字" Tag="case-title" Click="RibbonCommand_Click" />
+                                                    <MenuFlyoutItem Text="大文字と小文字を入れ替え" Tag="case-toggle" Click="RibbonCommand_Click" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                            <FontIcon Glyph="&#xE8E4;" FontSize="14" />
+                                        </Button>
+                                        <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="clear-format" ToolTipService.ToolTip="すべての書式をクリア" Content="&#xE894;" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="0" Margin="0,1,0,0">
+                                    <ToggleButton x:Name="BoldToggle" Style="{StaticResource RibbonIconToggleStyle}" FontWeight="Bold" Click="RibbonCommand_Click" Tag="bold" ToolTipService.ToolTip="太字 (Ctrl+B)" Content="&#xE8DD;" />
+                                    <ToggleButton x:Name="ItalicToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="italic" ToolTipService.ToolTip="斜体 (Ctrl+I)" Content="&#xE8DB;" />
+                                    <ToggleButton x:Name="UnderlineToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="underline" ToolTipService.ToolTip="下線 (Ctrl+U)" Content="&#xE8DC;" />
+                                    <Button Style="{StaticResource RibbonChevronButtonStyle}" ToolTipService.ToolTip="下線の種類">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="下線 (下線のみ)" Tag="underline-single" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="二重下線" Tag="underline-double" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="点線下線" Tag="underline-dotted" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="波線下線" Tag="underline-wave" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="下線なし" Tag="underline-none" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8" />
+                                    </Button>
+                                    <ToggleButton x:Name="StrikeToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="strike" ToolTipService.ToolTip="取り消し線" Content="&#xEDE0;" />
+                                    <Border Width="1" Height="18" Background="{ThemeResource HairlineBrush}" Margin="4,4,4,4" />
+                                    <ToggleButton x:Name="SubscriptToggle" Style="{StaticResource RibbonIconToggleStyle}" FontFamily="Yu Gothic UI" Click="RibbonCommand_Click" Tag="subscript" ToolTipService.ToolTip="下付き文字" Content="X₂" FontSize="12" />
+                                    <ToggleButton x:Name="SuperscriptToggle" Style="{StaticResource RibbonIconToggleStyle}" FontFamily="Yu Gothic UI" Click="RibbonCommand_Click" Tag="superscript" ToolTipService.ToolTip="上付き文字" Content="X²" FontSize="12" />
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="フォントの色">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <StackPanel Width="196" Spacing="5">
+                                                    <TextBlock Text="フォントの色" FontFamily="Yu Gothic UI" FontSize="12" FontWeight="SemiBold" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#000000" Tag="font-color:#000000" Click="RibbonCommand_Click" ToolTipService.ToolTip="黒" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#1F3864" Tag="font-color:#1F3864" Click="RibbonCommand_Click" ToolTipService.ToolTip="濃い青" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#C00000" Tag="font-color:#C00000" Click="RibbonCommand_Click" ToolTipService.ToolTip="赤" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#375623" Tag="font-color:#375623" Click="RibbonCommand_Click" ToolTipService.ToolTip="濃い緑" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#7030A0" Tag="font-color:#7030A0" Click="RibbonCommand_Click" ToolTipService.ToolTip="紫" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#C55A11" Tag="font-color:#C55A11" Click="RibbonCommand_Click" ToolTipService.ToolTip="オレンジ" />
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#2F75B5" Tag="font-color:#2F75B5" Click="RibbonCommand_Click" ToolTipService.ToolTip="青" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#7F7F7F" Tag="font-color:#7F7F7F" Click="RibbonCommand_Click" ToolTipService.ToolTip="グレー" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#BFBFBF" Tag="font-color:#BFBFBF" Click="RibbonCommand_Click" ToolTipService.ToolTip="薄いグレー" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FFC000" Tag="font-color:#FFC000" Click="RibbonCommand_Click" ToolTipService.ToolTip="黄" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#00B0F0" Tag="font-color:#00B0F0" Click="RibbonCommand_Click" ToolTipService.ToolTip="水色" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FFFFFF" Tag="font-color:#FFFFFF" Click="RibbonCommand_Click" ToolTipService.ToolTip="白" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <Grid Width="18" Height="20">
+                                            <FontIcon Glyph="&#xE8D3;" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                            <Border x:Name="FontColorBar" Height="3" Background="#C00000" CornerRadius="1" VerticalAlignment="Bottom" Margin="1,0,1,0" />
+                                        </Grid>
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="蛍光ペン">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <StackPanel Width="196" Spacing="5">
+                                                    <TextBlock Text="蛍光ペン" FontFamily="Yu Gothic UI" FontSize="12" FontWeight="SemiBold" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FFF2CC" Tag="highlight:#FFF2CC" Click="RibbonCommand_Click" ToolTipService.ToolTip="黄" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#E2EFDA" Tag="highlight:#E2EFDA" Click="RibbonCommand_Click" ToolTipService.ToolTip="緑" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#DDEBF7" Tag="highlight:#DDEBF7" Click="RibbonCommand_Click" ToolTipService.ToolTip="水色" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FCE4D6" Tag="highlight:#FCE4D6" Click="RibbonCommand_Click" ToolTipService.ToolTip="ピンク" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#E4DFEC" Tag="highlight:#E4DFEC" Click="RibbonCommand_Click" ToolTipService.ToolTip="紫" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="Transparent" Tag="highlight:none" Click="RibbonCommand_Click" ToolTipService.ToolTip="なし">
+                                                            <FontIcon Glyph="&#xE711;" FontSize="11" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <Grid Width="18" Height="20">
+                                            <FontIcon Glyph="&#xE7E6;" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                            <Border x:Name="HighlightColorBar" Height="3" Background="#FFC000" CornerRadius="1" VerticalAlignment="Bottom" Margin="1,0,1,0" />
+                                        </Grid>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Grid.Row="2" Text="フォント" Style="{StaticResource RibbonGroupLabelStyle}" />
+                                <Button Grid.Row="2" Style="{StaticResource RibbonGroupLauncherStyle}" Click="RibbonCommand_Click" Tag="font-dialog" ToolTipService.ToolTip="フォントの詳細設定" AutomationProperties.Name="フォントの詳細設定" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource RibbonGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="15" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Spacing="0">
+                                    <ToggleButton x:Name="BulletsToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="bullets" ToolTipService.ToolTip="箇条書き" Content="&#xE8FD;" />
+                                    <Button Style="{StaticResource RibbonChevronButtonStyle}" ToolTipService.ToolTip="箇条書きの種類">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="• 箇条書き" Tag="bullets" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="◦ 白丸" Tag="bullets-white" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="■ 四角" Tag="bullets-square" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="なし" Tag="list-none" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8" />
+                                    </Button>
+                                    <ToggleButton x:Name="NumberingToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="numbering" ToolTipService.ToolTip="段落番号">
+                                        <Grid Width="17" Height="17">
+                                            <TextBlock Text="1" FontFamily="Segoe UI" FontSize="7.5" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-1,0,0" />
+                                            <Path Data="M7,2 H16 M7,8 H16 M7,14 H16" Width="10" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                        </Grid>
+                                    </ToggleButton>
+                                    <Button Style="{StaticResource RibbonChevronButtonStyle}" ToolTipService.ToolTip="番号付けの種類">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="1. 2. 3." Tag="numbering" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="A. B. C." Tag="numbering-alpha" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="a. b. c." Tag="numbering-alpha-lower" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="i. ii. iii." Tag="numbering-roman" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="なし" Tag="list-none" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE70D;" FontSize="8" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="multilevel" ToolTipService.ToolTip="アウトライン">
+                                        <Grid Width="17" Height="17">
+                                            <TextBlock Text="1" FontFamily="Segoe UI" FontSize="7" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                                            <Path Data="M6,2 H16 M9,8 H16 M9,14 H16" Width="11" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                        </Grid>
+                                    </Button>
+                                    <Border Width="1" Height="16" Background="{ThemeResource HairlineBrush}" Margin="4,5,4,5" />
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="indent-decrease" ToolTipService.ToolTip="インデントを減らす">
+                                        <Path Data="M1,2 H7 M1,8 H7 M1,14 H7 M12,4 L9,8 L12,12 M9,8 H16" Width="16" Height="16" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="indent-increase" ToolTipService.ToolTip="インデントを増やす">
+                                        <Path Data="M1,2 H7 M1,8 H7 M1,14 H7 M9,2 L12,6 L9,10 M12,6 H16" Width="16" Height="16" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </Button>
+                                    <Border Width="1" Height="16" Background="{ThemeResource HairlineBrush}" Margin="4,5,4,5" />
+                                    <ToggleButton x:Name="AlignLeftToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-left" ToolTipService.ToolTip="左揃え" Content="&#xE8E4;" />
+                                    <ToggleButton x:Name="AlignCenterToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-center" ToolTipService.ToolTip="中央揃え" Content="&#xE8E3;" />
+                                    <ToggleButton x:Name="AlignRightToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-right" ToolTipService.ToolTip="右揃え" Content="&#xE8E2;" />
+                                    <ToggleButton x:Name="AlignJustifyToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-justify" ToolTipService.ToolTip="両端揃え">
+                                        <Path Data="M2,2 H16 M2,6 H16 M2,10 H16 M2,14 H16" Width="15" Height="15" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </ToggleButton>
+                                    <Border Width="1" Height="16" Background="{ThemeResource HairlineBrush}" Margin="4,5,4,5" />
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="行と段落の間隔">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="1.0" Tag="line-spacing:1" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="1.15" Tag="line-spacing:1.15" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="1.5" Tag="line-spacing:1.5" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="2.0" Tag="line-spacing:2" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="段落前 6 pt" Tag="space-before:6" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落後 6 pt" Tag="space-after:6" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落前後 12 pt" Tag="space-both:12" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE8AC;" FontSize="14" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="段落の間隔">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="段落前 0 pt" Tag="space-before:0" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落前 6 pt" Tag="space-before:6" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落前 12 pt" Tag="space-before:12" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutSeparator />
+                                                <MenuFlyoutItem Text="段落後 0 pt" Tag="space-after:0" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落後 6 pt" Tag="space-after:6" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="段落後 12 pt" Tag="space-after:12" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                    </Button>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="1" Margin="0,2,0,0">
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" ToolTipService.ToolTip="網かけ">
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <StackPanel Width="170" Spacing="5">
+                                                    <TextBlock Text="段落の網かけ" FontFamily="Yu Gothic UI" FontSize="12" FontWeight="SemiBold" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FFF2CC" Tag="shading:#FFF2CC" Click="RibbonCommand_Click" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#E2EFDA" Tag="shading:#E2EFDA" Click="RibbonCommand_Click" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#DDEBF7" Tag="shading:#DDEBF7" Click="RibbonCommand_Click" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="#FCE4D6" Tag="shading:#FCE4D6" Click="RibbonCommand_Click" />
+                                                        <Button Style="{StaticResource ColorSwatchButtonStyle}" Background="Transparent" Tag="shading:none" Click="RibbonCommand_Click">
+                                                            <FontIcon Glyph="&#xE711;" FontSize="11" />
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE7E6;" FontSize="14" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="borders" ToolTipService.ToolTip="段落の罫線">
+                                        <Path Data="M1,2 H16 M1,8 H16 M1,14 H16 M1,2 V14 M16,2 V14" Width="16" Height="16" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="paragraph-outline" ToolTipService.ToolTip="アウトライン">
+                                        <Path Data="M1,2 H5 M1,8 H8 M1,14 H11 M13,2 H16 M13,8 H16 M13,14 H16" Width="16" Height="16" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="sort" ToolTipService.ToolTip="並べ替え" Content="&#xE8CB;" />
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="distribute" ToolTipService.ToolTip="均等割り付け">
+                                        <Path Data="M2,2 V16 M6,2 H10 M6,8 H10 M6,14 H10 M14,2 V16" Width="16" Height="16" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonIconButtonStyle}" Click="RibbonCommand_Click" Tag="text-effects" ToolTipService.ToolTip="拡張書式" Content="&#xE8D2;" />
+                                </StackPanel>
+                                <TextBlock Grid.Row="2" Text="段落" Style="{StaticResource RibbonGroupLabelStyle}" />
+                                <Button Grid.Row="2" Style="{StaticResource RibbonGroupLauncherStyle}" Click="RibbonCommand_Click" Tag="paragraph-dialog" ToolTipService.ToolTip="段落の詳細設定" AutomationProperties.Name="段落の詳細設定" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource RibbonGroupStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="15" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Spacing="1">
+                                    <Button x:Name="StyleNormalButton" Style="{StaticResource StyleGalleryButtonStyle}" Width="82" Click="RibbonCommand_Click" Tag="style:normal" ToolTipService.ToolTip="標準">
+                                        <Border Background="White" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="1" CornerRadius="2">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="14" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="Aa" FontFamily="游明朝" FontSize="16" Foreground="#252423" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <Border Grid.Row="1" Background="#F7F7F7" CornerRadius="0,0,2,2">
+                                                    <TextBlock Text="標準" FontFamily="Yu Gothic UI" FontSize="8.5" Foreground="#252423" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                    <Button x:Name="StyleNoSpacingButton" Style="{StaticResource StyleGalleryButtonStyle}" Width="82" Click="RibbonCommand_Click" Tag="style:nospacing" ToolTipService.ToolTip="行間詰め">
+                                        <Border Background="White" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="1" CornerRadius="2">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="14" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="Aa" FontFamily="游明朝" FontSize="16" Foreground="#252423" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <Border Grid.Row="1" Background="#F7F7F7" CornerRadius="0,0,2,2">
+                                                    <TextBlock Text="行間詰め" FontFamily="Yu Gothic UI" FontSize="8" Foreground="#252423" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                    <Button x:Name="StyleHeading1Button" Style="{StaticResource StyleGalleryButtonStyle}" Width="82" Click="RibbonCommand_Click" Tag="style:heading1" ToolTipService.ToolTip="見出し 1">
+                                        <Border Background="White" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="1" CornerRadius="2">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="14" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="Aa" FontFamily="游明朝" FontSize="16" FontWeight="Bold" Foreground="{StaticResource WordAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                <Border Grid.Row="1" Background="#F7F7F7" CornerRadius="0,0,2,2">
+                                                    <TextBlock Text="見出し 1" FontFamily="Yu Gothic UI" FontSize="8.5" Foreground="#252423" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                    <Button x:Name="StyleMoreButton" Style="{StaticResource StyleGalleryMoreButtonStyle}" ToolTipService.ToolTip="その他のスタイル">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="標準" Tag="style:normal" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="行間詰め" Tag="style:nospacing" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="見出し 1" Tag="style:heading1" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="見出し 2" Tag="style:heading2" Click="RibbonCommand_Click" />
+                                                <MenuFlyoutItem Text="タイトル" Tag="style:title" Click="RibbonCommand_Click" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Text="スタイル" Style="{StaticResource RibbonGroupLabelStyle}" />
+                                <Button Grid.Row="1" Style="{StaticResource RibbonGroupLauncherStyle}" Click="RibbonCommand_Click" Tag="styles-dialog" ToolTipService.ToolTip="スタイルの詳細設定" AutomationProperties.Name="スタイルの詳細設定" />
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource RibbonGroupStyle}" BorderThickness="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="15" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Orientation="Horizontal" Spacing="1">
+                                    <Button Style="{StaticResource RibbonLargeButtonStyle}" Width="57" Click="RibbonCommand_Click" Tag="find" ToolTipService.ToolTip="検索 (Ctrl+F)">
+                                        <StackPanel Spacing="1">
+                                            <FontIcon Glyph="&#xE721;" FontSize="24" />
+                                            <TextBlock Text="検索" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonLargeButtonStyle}" Width="57" Click="RibbonCommand_Click" Tag="replace" ToolTipService.ToolTip="置換 (Ctrl+H)">
+                                        <StackPanel Spacing="1">
+                                            <FontIcon Glyph="&#xE8AC;" FontSize="24" />
+                                            <TextBlock Text="置換" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource RibbonLargeButtonStyle}" Width="57" Click="RibbonCommand_Click" Tag="select-all" ToolTipService.ToolTip="すべて選択 (Ctrl+A)">
+                                        <StackPanel Spacing="1">
+                                            <FontIcon Glyph="&#xE8B3;" FontSize="24" />
+                                            <TextBlock Text="選択" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Text="編集" Style="{StaticResource RibbonGroupLabelStyle}" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- HOME (simplified one-row ribbon) -->
+                    <StackPanel x:Name="HomeCompactRibbon" Orientation="Horizontal" Height="44">
+                        <Button Style="{StaticResource RibbonCompactButtonStyle}" Click="RibbonCommand_Click" Tag="paste" ToolTipService.ToolTip="貼り付け (Ctrl+V)">
+                            <StackPanel Spacing="1">
+                                <FontIcon Glyph="&#xE77F;" FontSize="15" HorizontalAlignment="Center" />
+                                <TextBlock Text="貼り付け" FontSize="9.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Border Width="1" Height="22" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+
+                        <ComboBox x:Name="CompactFontCombo" Width="146" Height="26" IsEditable="True" VerticalAlignment="Center" FontFamily="Yu Gothic UI" FontSize="11.5" SelectionChanged="FontCombo_SelectionChanged" TextSubmitted="FontCombo_TextSubmitted" />
+                        <ComboBox x:Name="CompactFontSizeCombo" Width="62" Height="26" Margin="4,0,0,0" IsEditable="True" VerticalAlignment="Center" FontFamily="Yu Gothic UI" FontSize="11.5" SelectionChanged="FontSizeCombo_SelectionChanged" TextSubmitted="FontSizeCombo_TextSubmitted" />
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                            <ToggleButton x:Name="CompactBoldToggle" Style="{StaticResource RibbonIconToggleStyle}" FontWeight="Bold" Click="RibbonCommand_Click" Tag="bold" ToolTipService.ToolTip="太字 (Ctrl+B)" Content="&#xE8DD;" />
+                            <ToggleButton x:Name="CompactItalicToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="italic" ToolTipService.ToolTip="斜体 (Ctrl+I)" Content="&#xE8DB;" />
+                            <ToggleButton x:Name="CompactUnderlineToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="underline" ToolTipService.ToolTip="下線 (Ctrl+U)" Content="&#xE8DC;" />
+                            <Button x:Name="CompactFontColorButton" Style="{StaticResource RibbonIconButtonStyle}" Margin="2,0,0,0" ToolTipService.ToolTip="フォントの色">
+                                <Grid Width="16" Height="16">
+                                    <TextBlock Text="A" FontFamily="Segoe UI" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                                    <Border x:Name="CompactFontColorBar" Height="3" Width="14" Background="#C00000" VerticalAlignment="Bottom" CornerRadius="1" />
+                                </Grid>
+                            </Button>
+                        </StackPanel>
+                        <Border Width="1" Height="22" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ToggleButton x:Name="CompactAlignLeftToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-left" ToolTipService.ToolTip="左揃え" Content="&#xE8E4;" />
+                            <ToggleButton x:Name="CompactAlignCenterToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-center" ToolTipService.ToolTip="中央揃え" Content="&#xE8E3;" />
+                            <ToggleButton x:Name="CompactAlignRightToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-right" ToolTipService.ToolTip="右揃え" Content="&#xE8E2;" />
+                            <ToggleButton x:Name="CompactAlignJustifyToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="align-justify" ToolTipService.ToolTip="両端揃え">
+                                <Path Data="M1,2 H15 M1,6 H15 M1,10 H15 M1,14 H15" Width="14" Height="12" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                            </ToggleButton>
+                            <Border Width="1" Height="18" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+                            <ToggleButton x:Name="CompactBulletsToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="bullets" ToolTipService.ToolTip="箇条書き">
+                                <Grid Width="17" Height="17">
+                                    <TextBlock Text="&#x2022;" FontFamily="Segoe UI" FontSize="9" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-2,0,0" />
+                                    <Path Data="M6,2 H16 M6,8 H16 M6,14 H16" Width="10" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                </Grid>
+                            </ToggleButton>
+                            <ToggleButton x:Name="CompactNumberingToggle" Style="{StaticResource RibbonIconToggleStyle}" Click="RibbonCommand_Click" Tag="numbering" ToolTipService.ToolTip="段落番号">
+                                <Grid Width="17" Height="17">
+                                    <TextBlock Text="1" FontFamily="Segoe UI" FontSize="7.5" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-1,0,0" />
+                                    <Path Data="M7,2 H16 M7,8 H16 M7,14 H16" Width="10" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Stroke="{ThemeResource InkBrush}" StrokeThickness="1.25" Stretch="Uniform" />
+                                </Grid>
+                            </ToggleButton>
+                        </StackPanel>
+                        <Border Width="1" Height="22" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="2">
+                            <Button x:Name="CompactStyleNormalButton" Style="{StaticResource RibbonSmallTextButtonStyle}" Height="26" Padding="9,0" Click="RibbonCommand_Click" Tag="style:normal" ToolTipService.ToolTip="標準" Content="標準" />
+                            <Button x:Name="CompactStyleHeading1Button" Style="{StaticResource RibbonSmallTextButtonStyle}" Height="26" Padding="9,0" Click="RibbonCommand_Click" Tag="style:heading1" ToolTipService.ToolTip="見出し 1" Content="見出し 1" />
+                            <Button x:Name="CompactStyleHeading2Button" Style="{StaticResource RibbonSmallTextButtonStyle}" Height="26" Padding="9,0" Click="RibbonCommand_Click" Tag="style:heading2" ToolTipService.ToolTip="見出し 2" Content="見出し 2" />
+                        </StackPanel>
+                        <Border Width="1" Height="22" Background="{ThemeResource HairlineBrush}" Margin="4,0,4,0" VerticalAlignment="Center" />
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource RibbonCompactButtonStyle}" Click="RibbonCommand_Click" Tag="find" ToolTipService.ToolTip="検索 (Ctrl+F)">
+                                <StackPanel Spacing="1">
+                                    <FontIcon Glyph="&#xE721;" FontSize="15" HorizontalAlignment="Center" />
+                                    <TextBlock Text="検索" FontSize="9.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource RibbonCompactButtonStyle}" Click="RibbonCommand_Click" Tag="replace" ToolTipService.ToolTip="置換 (Ctrl+H)">
+                                <StackPanel Spacing="1">
+                                    <FontIcon Glyph="&#xE8AC;" FontSize="15" HorizontalAlignment="Center" />
+                                    <TextBlock Text="置換" FontSize="9.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Secondary ribbon tabs are generated in code for a compact, consistent layout. -->
+                    <StackPanel x:Name="InsertRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="DesignRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="LayoutRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="ReferencesRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="MailingsRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="ReviewRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="ViewRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                    <StackPanel x:Name="HelpRibbon" Orientation="Horizontal" Height="92" Visibility="Collapsed" />
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ============================ DOCUMENT AREA ============================ -->
+        <Grid x:Name="DocumentArea" Grid.Row="3" Background="{ThemeResource PageCanvasBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ScrollViewer
+                x:Name="PageScrollViewer"
+                ZoomMode="Enabled"
+                MinZoomFactor="0.5"
+                MaxZoomFactor="2.5"
+                HorizontalScrollMode="Enabled"
+                VerticalScrollMode="Enabled"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto"
+                ViewChanged="PageScrollViewer_ViewChanged"
+                IsTabStop="False">
+                <Grid x:Name="PageDecor" HorizontalAlignment="Center" Margin="0,10,0,22">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="22" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="24" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid x:Name="RulerHost" Grid.Row="0" Grid.Column="1" Width="794" Height="24" Margin="5,0,5,3">
+                        <Canvas x:Name="RulerCanvas" Width="794" Height="21" />
+                        <Border Height="1" Background="#C8C6C4" VerticalAlignment="Bottom" />
+                    </Grid>
+
+                    <Grid x:Name="VerticalRulerHost" Grid.Row="1" Grid.Column="0" Width="21" Height="1123" VerticalAlignment="Top">
+                        <Canvas x:Name="VerticalRulerCanvas" Width="21" Height="1123" />
+                        <Border Width="1" Background="#C8C6C4" HorizontalAlignment="Right" />
+                    </Grid>
+
+                    <Grid x:Name="PageFrame" Grid.Row="1" Grid.Column="1" Width="804" Height="1133" HorizontalAlignment="Center">
+                        <Border Background="{ThemeResource ShadowBrush}" CornerRadius="3" Margin="10,10,0,0" Opacity="0.55" />
+                        <Border
+                            x:Name="PageBorder"
+                            Width="794"
+                            Height="1123"
+                            RequestedTheme="Light"
+                            Background="White"
+                            BorderBrush="#D2D0CE"
+                            BorderThickness="1"
+                            CornerRadius="2"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top">
+                            <Grid>
+                                <RichEditBox
+                                    x:Name="Editor"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="72,72,72,72"
+                                    FontFamily="游明朝"
+                                    FontSize="14.5"
+                                    AcceptsReturn="True"
+                                    TextWrapping="Wrap"
+                                    IsSpellCheckEnabled="True"
+                                    IsTextPredictionEnabled="False"
+                                    PlaceholderText="ここに入力してください"
+                                    SelectionHighlightColor="{StaticResource WordAccentBrush}"
+                                    VerticalContentAlignment="Top"
+                                    HorizontalContentAlignment="Stretch"
+                                    TextChanged="Editor_TextChanged"
+                                    SelectionChanged="Editor_SelectionChanged"
+                                    Loaded="Editor_Loaded"
+                                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                                <Canvas x:Name="GridLinesOverlay" IsHitTestVisible="False" Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="1" FontFamily="Segoe UI" FontSize="11" Foreground="#6E6A67" HorizontalAlignment="Center" Margin="0,7,0,0" />
+                </Grid>
+            </ScrollViewer>
+
+            <Button
+                x:Name="ReadingModeExitButton"
+                Visibility="Collapsed"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,14,22,0"
+                Background="{ThemeResource PillBrush}"
+                Foreground="{ThemeResource PillTextBrush}"
+                CornerRadius="16"
+                Padding="13,7"
+                BorderThickness="0"
+                Click="RibbonCommand_Click"
+                Tag="view-exit-reading">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE711;" FontSize="12" />
+                    <TextBlock Text="閲覧モードを終了" FontFamily="Yu Gothic UI" FontSize="11.5" />
+                </StackPanel>
+            </Button>
+
+            <!-- Word-style Editor pane: proofing score and writing considerations. -->
+            <Border
+                x:Name="ProofingPane"
+                Grid.Column="1"
+                Width="336"
+                Background="{ThemeResource SurfaceBrush}"
+                BorderBrush="{ThemeResource HairlineBrush}"
+                BorderThickness="1,0,0,0"
+                Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Padding="18,12,10,10">
+                        <TextBlock Text="エディター" FontFamily="Yu Gothic UI" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource StatusBarButtonStyle}"
+                            Click="CloseProofing_Click"
+                            Content="&#xE711;"
+                            ToolTipService.ToolTip="エディターを閉じる"
+                            AutomationProperties.Name="エディターを閉じる" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" Padding="18,0,16,18" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="16">
+                            <StackPanel Orientation="Horizontal" Spacing="14">
+                                <Grid Width="68" Height="68">
+                                    <Ellipse Fill="{ThemeResource ActiveTintBrush}" />
+                                    <TextBlock x:Name="ProofingScoreText" Text="100" FontFamily="Yu Gothic UI" FontSize="24" FontWeight="SemiBold" Foreground="{ThemeResource ActiveBorderBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Grid>
+                                <StackPanel VerticalAlignment="Center" Spacing="3" MaxWidth="200">
+                                    <TextBlock Text="校正スコア" FontFamily="Yu Gothic UI" FontSize="12.5" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="ProofingSummaryText" Text="問題は見つかりませんでした。" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Spacing="3">
+                                <TextBlock Text="修正点" FontFamily="Yu Gothic UI" FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock x:Name="ProofingIssueCountText" Text="0 件" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                                <StackPanel x:Name="ProofingIssuesPanel" Spacing="5" Margin="0,3,0,0" />
+                            </StackPanel>
+
+                            <Border Height="1" Background="{ThemeResource HairlineBrush}" />
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="表現や表記上の考慮点" FontFamily="Yu Gothic UI" FontSize="14" FontWeight="SemiBold" />
+                                <StackPanel x:Name="ProofingTipsPanel" Spacing="5" />
+                            </StackPanel>
+
+                            <Border Height="1" Background="{ThemeResource HairlineBrush}" />
+
+                            <StackPanel Spacing="3">
+                                <CheckBox x:Name="ProofingSpellCheck" Content="スペルチェックを有効にする" Checked="ProofingSpellCheck_Changed" Unchecked="ProofingSpellCheck_Changed" />
+                                <TextBlock x:Name="ProofingLanguageText" Text="校正言語: 日本語 (日本)" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                                <TextBlock Text="赤い波線が付いた語を右クリックすると候補を選択できます。" FontFamily="Yu Gothic UI" FontSize="11" Foreground="{ThemeResource MutedInkBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <InfoBar
+                x:Name="ToastBar"
+                IsOpen="False"
+                IsClosable="True"
+                Severity="Informational"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,12,0,0"
+                Width="500"
+                Canvas.ZIndex="10" />
+        </Grid>
+
+        <!-- ============================ STATUS BAR ============================ -->
+        <Grid Grid.Row="4" Background="{ThemeResource ChromeBrush}" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="0,1,0,0" Padding="12,0,10,0">
+            <StackPanel Orientation="Horizontal" Spacing="18" VerticalAlignment="Center">
+                <TextBlock x:Name="PageStatusText" Text="1/1" Style="{StaticResource StatusBarTextStyle}" ToolTipService.ToolTip="ページ" />
+                <TextBlock x:Name="WordCountStatusText" Text="文字数: 0" Style="{StaticResource StatusBarTextStyle}" />
+                <TextBlock Text="日本語 (日本)" Style="{StaticResource StatusBarTextStyle}" />
+                <TextBlock x:Name="LanguageStatusText" Text="校正: オフ" Style="{StaticResource StatusBarTextStyle}" />
+                <TextBlock x:Name="ModeStatusText" Text="編集" Style="{StaticResource StatusBarTextStyle}" ToolTipService.ToolTip="現在の文書モード" />
+                <TextBlock
+                    x:Name="StatusMessageText"
+                    Style="{StaticResource StatusBarTextStyle}"
+                    Foreground="{ThemeResource StatusMessageBrush}"
+                    TextTrimming="CharacterEllipsis"
+                    MaxWidth="480"
+                    Visibility="Collapsed" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Style="{StaticResource StatusBarButtonStyle}" Click="RibbonCommand_Click" Tag="view-reading" ToolTipService.ToolTip="閲覧モード" Content="&#xED5E;" />
+                <Button Style="{StaticResource StatusBarButtonStyle}" Click="RibbonCommand_Click" Tag="view-web" ToolTipService.ToolTip="Web レイアウト" Content="&#xE774;" />
+                <Button Style="{StaticResource StatusBarButtonStyle}" Click="RibbonCommand_Click" Tag="view-print" ToolTipService.ToolTip="印刷レイアウト" Content="&#xE7C3;" />
+                <Border Width="1" Height="15" Background="{ThemeResource HairlineBrush}" Margin="5,0,5,0" />
+                <Button Style="{StaticResource StatusBarButtonStyle}" Click="RibbonCommand_Click" Tag="zoom-out" ToolTipService.ToolTip="縮小" Content="&#xE71F;" />
+                <Slider x:Name="ZoomSlider" Width="102" VerticalAlignment="Center" ValueChanged="ZoomSlider_ValueChanged" ToolTipService.ToolTip="ズーム" />
+                <Button Style="{StaticResource StatusBarButtonStyle}" Click="RibbonCommand_Click" Tag="zoom-in" ToolTipService.ToolTip="拡大" Content="&#xE8A3;" />
+                <Button Style="{StaticResource RibbonSmallTextButtonStyle}" Width="48" Height="22" Click="RibbonCommand_Click" Tag="zoom-reset" ToolTipService.ToolTip="ズームをリセット">
+                    <TextBlock x:Name="ZoomText" Text="100%" FontFamily="Yu Gothic UI" FontSize="11" HorizontalAlignment="Center" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ============================ FILE BACKSTAGE ============================ -->
+        <Grid x:Name="FileBackstage" Grid.Row="1" Grid.RowSpan="4" Background="{ThemeResource RibbonBrush}" Visibility="Collapsed" Canvas.ZIndex="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="236" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Background="{ThemeResource RibbonBrush}" BorderBrush="{ThemeResource HairlineBrush}" BorderThickness="0,0,1,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="54" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="54" />
+                </Grid.RowDefinitions>
+
+                <Button Style="{StaticResource BackstageNavButtonStyle}" Margin="8,10,8,0" Click="BackstageHome_Click" ToolTipService.ToolTip="文書に戻る" AutomationProperties.Name="ホーム">
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <FontIcon Glyph="&#xE72B;" FontSize="14" />
+                        <TextBlock Text="ホーム" FontSize="13" />
+                    </StackPanel>
+                </Button>
+
+                <StackPanel x:Name="BackstageNavPanel" Grid.Row="1" Margin="8,12,8,0" Spacing="2">
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="info" Click="BackstageCommand_Click" AutomationProperties.Name="情報">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE946;" FontSize="15" />
+                            <TextBlock Text="情報" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="new" Click="BackstageCommand_Click" AutomationProperties.Name="新規">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8A5;" FontSize="15" />
+                            <TextBlock Text="新規" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="open" Click="BackstageCommand_Click" AutomationProperties.Name="開く">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE838;" FontSize="15" />
+                            <TextBlock Text="開く" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="save" Click="BackstageCommand_Click" AutomationProperties.Name="保存">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE74E;" FontSize="15" />
+                            <TextBlock Text="保存" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="save-as" Click="BackstageCommand_Click" AutomationProperties.Name="名前を付けて保存">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE792;" FontSize="15" />
+                            <TextBlock Text="名前を付けて保存" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="print" Click="BackstageCommand_Click" AutomationProperties.Name="印刷">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE749;" FontSize="15" />
+                            <TextBlock Text="印刷" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="export" Click="BackstageCommand_Click" AutomationProperties.Name="エクスポート">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEDE1;" FontSize="15" />
+                            <TextBlock Text="エクスポート" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border Height="1" Background="{ThemeResource HairlineBrush}" Margin="12,8,12,8" />
+
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="account" Click="BackstageCommand_Click" AutomationProperties.Name="アカウント">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE77B;" FontSize="15" />
+                            <TextBlock Text="アカウント" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource BackstageNavButtonStyle}" Tag="options" Click="BackstageCommand_Click" AutomationProperties.Name="オプション">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE713;" FontSize="15" />
+                            <TextBlock Text="オプション" FontSize="12.5" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Button Grid.Row="2" Style="{StaticResource BackstageNavButtonStyle}" Margin="8,0,8,10" Tag="exit" Click="BackstageCommand_Click" ToolTipService.ToolTip="アプリを終了" AutomationProperties.Name="終了">
+                    <StackPanel Orientation="Horizontal" Spacing="9">
+                        <FontIcon Glyph="&#xE7E8;" FontSize="14" />
+                        <TextBlock Text="終了" FontSize="12.5" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0">
+                <Grid>
+                <StackPanel x:Name="BackstageInfoPanel" Margin="58,34,58,40" Spacing="18" MaxWidth="920" HorizontalAlignment="Left">
+                    <TextBlock Text="情報" FontFamily="Yu Gothic UI" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource InkBrush}" />
+
+                    <StackPanel Spacing="5">
+                        <TextBlock x:Name="BackstageDocName" Text="無題 1" FontFamily="Yu Gothic UI" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource WordAccentBrush}" />
+                        <TextBlock x:Name="BackstageDocPath" Text="この PC に保存されていません" FontFamily="Yu Gothic UI" FontSize="12" Foreground="{ThemeResource MutedInkBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="保存" Click="BackstageCommand_Click" Tag="save" Background="{StaticResource WordAccentBrush}" Foreground="White" BorderThickness="0" CornerRadius="4" Padding="20,8" />
+                        <Button Content="名前を付けて保存" Click="BackstageCommand_Click" Tag="save-as" BorderThickness="1" BorderBrush="{ThemeResource HairlineBrush}" Background="{ThemeResource SurfaceBrush}" CornerRadius="4" Padding="16,8" />
+                    </StackPanel>
+
+                    <Border Height="1" Background="{ThemeResource HairlineBrush}" Margin="0,2,0,2" />
+
+                    <Grid ColumnSpacing="54">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="文書の保護" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock Text="読み取り専用にすると、本文を誤って変更するのを防げます。" TextWrapping="Wrap" FontFamily="Yu Gothic UI" FontSize="12" Foreground="{ThemeResource MutedInkBrush}" />
+                            <ToggleSwitch
+                                x:Name="BackstageReadOnlySwitch"
+                                Header="読み取り専用"
+                                OnContent="オン"
+                                OffContent="オフ"
+                                Toggled="BackstageReadOnlySwitch_Toggled" />
+                            <TextBlock x:Name="BackstageProtectionText" Text="現在のモード: 編集" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="9">
+                            <TextBlock Text="プロパティ" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+                            <Grid ColumnSpacing="20" RowSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="形式" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock x:Name="BackstageFormat" Grid.Column="1" Text="RTF" FontSize="12" />
+
+                                <TextBlock Grid.Row="1" Text="ページ" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="1" FontSize="12" />
+
+                                <TextBlock Grid.Row="2" Text="文字数" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock x:Name="BackstageWordCount" Grid.Row="2" Grid.Column="1" Text="0" FontSize="12" />
+
+                                <TextBlock Grid.Row="3" Text="サイズ" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock x:Name="BackstageSizeText" Grid.Row="3" Grid.Column="1" Text="-" FontSize="12" />
+
+                                <TextBlock Grid.Row="4" Text="作成日" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock x:Name="BackstageCreatedText" Grid.Row="4" Grid.Column="1" Text="-" FontSize="12" />
+
+                                <TextBlock Grid.Row="5" Text="更新日" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock x:Name="BackstageModifiedText" Grid.Row="5" Grid.Column="1" Text="-" FontSize="12" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Height="1" Background="{ThemeResource HairlineBrush}" Margin="0,2,0,2" />
+
+                    <TextBlock Text="新規作成、開く、保存、印刷、エクスポート、オプションは左のメニューから実行できます。" TextWrapping="Wrap" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                </StackPanel>
+                <StackPanel x:Name="BackstageAccountPanel" Margin="58,34,58,40" Spacing="20" MaxWidth="980" HorizontalAlignment="Left" Visibility="Collapsed">
+                    <TextBlock Text="アカウント" FontFamily="Yu Gothic UI" FontSize="28" FontWeight="SemiBold" Foreground="{ThemeResource InkBrush}" />
+
+                    <Grid ColumnSpacing="54">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="ユーザー情報" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Grid Width="52" Height="52">
+                                    <Ellipse x:Name="AccountAvatarEllipse" Fill="{ThemeResource ActiveTintBrush}" />
+                                    <FontIcon x:Name="AccountAvatarIcon" Glyph="&#xE77B;" FontSize="24" Foreground="{StaticResource WordAccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Grid>
+                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock x:Name="AccountUserName" Text="ローカル ユーザー" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+                                    <TextBlock x:Name="AccountRoleText" Text="ローカル アカウント" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="プロフィールを編集" Click="EditAccountProfile_Click" BorderThickness="0" Background="{StaticResource WordAccentBrush}" Foreground="White" CornerRadius="4" Padding="14,7" />
+                                <Button Content="画像を変更" Click="ChangeAccountImage_Click" BorderThickness="1" BorderBrush="{ThemeResource HairlineBrush}" Background="{ThemeResource SurfaceBrush}" CornerRadius="4" Padding="14,7" />
+                                <Button Content="既定に戻す" Click="ResetAccountProfile_Click" BorderThickness="1" BorderBrush="{ThemeResource HairlineBrush}" Background="{ThemeResource SurfaceBrush}" CornerRadius="4" Padding="14,7" />
+                            </StackPanel>
+
+                            <TextBlock Text="WordPad Lite はサインインなしで利用できます。アカウント情報はこの PC の外に送信されません。" TextWrapping="Wrap" FontFamily="Yu Gothic UI" FontSize="12" Foreground="{ThemeResource MutedInkBrush}" />
+
+                            <Border Height="1" Background="{ThemeResource HairlineBrush}" Margin="0,8,0,4" />
+
+                            <TextBlock Text="アカウントのプライバシー" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock Text="文書はこの PC 上にのみ保存されます。クラウド アカウント、テレメトリ、サブスクリプションは使用しません。" TextWrapping="Wrap" FontFamily="Yu Gothic UI" FontSize="12" Foreground="{ThemeResource MutedInkBrush}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="10">
+                            <TextBlock Text="製品情報" FontFamily="Yu Gothic UI" FontSize="15" FontWeight="SemiBold" />
+
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Width="52" Height="52" CornerRadius="9" Background="{StaticResource WordAccentBrush}">
+                                    <TextBlock Text="W" Foreground="White" FontFamily="Segoe UI Semibold" FontSize="27" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="WordPad Lite" FontFamily="Yu Gothic UI" FontSize="20" FontWeight="SemiBold" />
+                                    <TextBlock Text="Native WinUI 3 Edition  1.0.0" FontFamily="Yu Gothic UI" FontSize="11.5" Foreground="{ThemeResource MutedInkBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <TextBlock Text="Microsoft 365 のサブスクリプションは不要です。このアプリはローカルで動作します。" TextWrapping="Wrap" FontFamily="Yu Gothic UI" FontSize="12" Foreground="{ThemeResource MutedInkBrush}" />
+
+                            <Grid ColumnSpacing="20" RowSpacing="7" Margin="0,4,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="バージョン" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock Grid.Column="1" Text="1.0.0" FontSize="12" />
+                                <TextBlock Grid.Row="1" Text="実行環境" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text=".NET 10 / Windows App SDK 2.5.1" FontSize="12" />
+                                <TextBlock Grid.Row="2" Text="保存形式" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="RTF / TXT / DOCX（テキスト）" FontSize="12" />
+                                <TextBlock Grid.Row="3" Text="ライセンス" Foreground="{ThemeResource MutedInkBrush}" FontSize="12" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="個人利用" FontSize="12" />
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="更新プログラムを確認" Tag="help-updates" Click="BackstageCommand_Click" BorderThickness="1" BorderBrush="{ThemeResource HairlineBrush}" Background="{ThemeResource SurfaceBrush}" CornerRadius="4" Padding="16,8" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+    </Grid>
+</Window>
