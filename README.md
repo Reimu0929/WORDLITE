@@ -27,6 +27,14 @@ cd WordPadLite.WinUI
 dotnet build -c Debug -p:Platform=x64
 ```
 
+WSL 上のソースを `\\wsl.localhost\...` のままビルドすると、Windows SDK の `mt.exe` が UNC パスを扱えず `C1010070` で失敗します。その場合は、リポジトリ直下の `build-windows.cmd` を使用してください。ソースを Windows のローカル フォルダー（既定: `%USERPROFILE%\source\repos\WORDLITE-build`）へ同期してからビルドします。
+
+```powershell
+& "\\wsl.localhost\Ubuntu-26.04\home\hakurei\test\build-windows.cmd"
+```
+
+構成を指定する場合は第 1 引数に `Debug` または `Release` を渡します。同期先は環境変数 `WORDLITE_BUILD_ROOT` で変更できます。
+
 実行ファイル:
 
 ```
